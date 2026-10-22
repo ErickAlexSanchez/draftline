@@ -1,0 +1,15 @@
+{
+  "name": "@draftline/composition",
+  "private": true,
+  "version": "0.1.0",
+  "main": "./src/compose.ts",
+  "types": "./src/compose.ts",
+  "exports": {
+    ".": "./src/compose.ts"
+  },
+  "dependencies": {
+    "@draftline/adapters": "workspace:*",
+    "@draftline/domain": "workspace:*",
+    "@draftline/postgres": "workspace:*"
+  }
+}

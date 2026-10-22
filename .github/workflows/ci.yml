@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: draftline
+          POSTGRES_PASSWORD: draftline
+          POSTGRES_DB: draftline
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U draftline -d draftline"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://draftline:draftline@localhost:5433/draftline
+      INTEGRATION_DATABASE_URL: postgresql://draftline:draftline@localhost:5433/draftline_test
+      SESSION_SECRET: ci-session-secret-should-be-32-characters
+      API_URL: http://127.0.0.1:3202
+      WEB_ORIGIN: http://localhost:3201
+      API_PORT: "3202"
+      SEED_EDITOR_EMAIL: editor@draftline.example
+      SEED_VIEWER_EMAIL: viewer@draftline.example
+      SEED_EDITOR_PASSWORD: ci-editor-password
+      SEED_VIEWER_PASSWORD: ci-viewer-password
+      STORAGE_DIR: var/storage
+      MODEL_CREDIT_COST: "1"
+      FAKE_MODEL_DELAY_MS: "400"
+      JOB_POLL_MS: "200"
+      JOB_VISIBILITY_DELAY_MS: "2000"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e

@@ -1,0 +1,221 @@
+:root {
+  --paper: #f4efe6;
+  --paper-raised: #fffaf3;
+  --ink: #1c1915;
+  --muted: #3a342c;
+  --line: #cbbba4;
+  --forest: #1b4332;
+  --forest-ink: #f3faf6;
+  --focus: #1b4332;
+  --danger-bg: #f8e6e2;
+  --danger-ink: #5c1414;
+  --danger-line: #8c2f2f;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Segoe UI", "Source Sans 3", sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+body { min-height: 100vh; }
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  background: var(--forest);
+  color: var(--forest-ink);
+  padding: 0.5rem 0.75rem;
+}
+
+.skip-link:focus { top: 1rem; }
+
+a { color: #123d2a; text-underline-offset: 0.15em; }
+
+h1, h2 { line-height: 1.2; }
+
+h1 { font-size: 2rem; margin: 0 0 0.75rem; }
+
+h2 { font-size: 1.25rem; margin: 1.5rem 0 0.5rem; }
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--paper-raised);
+  border-bottom: 8px solid var(--forest);
+}
+
+.wordmark {
+  color: var(--ink);
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  font-size: 1.15rem;
+}
+
+.tagline, .account, .hint, .footer, .banner { color: var(--muted); }
+
+.tagline, .account p, .hint { margin: 0.15rem 0; }
+
+.nav-list {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.wrap {
+  width: min(100%, 68rem);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.banner {
+  width: min(100%, 68rem);
+  margin: 0.75rem auto 0;
+  padding: 0 1rem;
+}
+
+.login-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.card, form, .draft-text, .alert {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+}
+
+.card { width: min(100%, 28rem); padding: 1.5rem; }
+
+.eyebrow {
+  margin: 0;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--forest);
+  font-size: 0.8rem;
+}
+
+label { display: block; margin: 1rem 0 0.35rem; font-weight: 650; }
+
+input, textarea, button {
+  font: inherit;
+  color: var(--ink);
+}
+
+input, textarea {
+  width: 100%;
+  background: #fffaf3;
+  border: 2px solid #5c5144;
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
+}
+
+textarea { min-height: 8rem; resize: vertical; }
+
+button, .button {
+  background: var(--forest);
+  color: var(--forest-ink);
+  border: 2px solid var(--forest);
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #3e4a45;
+  border-color: #3e4a45;
+  color: #f4faf6;
+  cursor: not-allowed;
+}
+
+.alert {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+  border: 2px solid var(--danger-line);
+  padding: 0.75rem 1rem;
+}
+
+.table-wrap { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; }
+
+th, td {
+  text-align: left;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+th { font-weight: 700; }
+
+.status {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.95rem;
+}
+
+.status-queued { background: #3d2e12; color: #f6e7c1; }
+.status-running { background: #1e3a5f; color: #e7f0fa; }
+.status-succeeded { background: #1b4332; color: #e7f6ee; }
+.status-failed { background: #6e1e1e; color: #fde8e8; }
+
+.brief, .draft-text { white-space: pre-wrap; }
+
+.draft-text {
+  padding: 1rem;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: 1.15rem;
+}
+
+.draft-list { list-style: none; padding: 0; }
+
+.draft-list li {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.footer { padding-top: 0; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 40rem) {
+  .topbar, .draft-list li { flex-direction: column; align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto; }
+}

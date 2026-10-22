@@ -1,0 +1,22 @@
+name: draftline
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: draftline-postgres
+    environment:
+      POSTGRES_USER: draftline
+      POSTGRES_PASSWORD: draftline
+      POSTGRES_DB: draftline
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - draftline_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U draftline -d draftline"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  draftline_pg:

@@ -1,0 +1,19 @@
+{
+  "name": "@draftline/postgres",
+  "private": true,
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@draftline/adapters": "workspace:*",
+    "@draftline/domain": "workspace:*",
+    "pg": "^8.13.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.10"
+  }
+}

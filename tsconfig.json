@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "jsx": "preserve",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node", "jest"],
+    "baseUrl": ".",
+    "paths": {
+      "@draftline/domain": ["packages/domain/src/index.ts"],
+      "@draftline/contracts": ["packages/contracts/src/index.ts"],
+      "@draftline/adapters": ["packages/adapters/src/index.ts"],
+      "@draftline/postgres": ["packages/postgres/src/index.ts"],
+      "@draftline/composition": ["packages/composition/src/compose.ts"]
+    }
+  },
+  "include": [
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "tests/**/*.ts",
+    "scripts/**/*.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": ["node_modules", ".next", "dist", "coverage", "playwright-report"]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "draftline",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.18.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx scripts/dev.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "pretest": "tsx scripts/ensure-postgres.ts",
+    "test": "jest --colors=false",
+    "pretest:e2e": "tsx scripts/ensure-postgres.ts",
+    "test:e2e": "playwright test",
+    "migrate": "tsx packages/postgres/src/cli.ts migrate",
+    "seed": "tsx packages/postgres/src/cli.ts seed",
+    "db:reset": "tsx packages/postgres/src/cli.ts reset"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@embedded-postgres/windows-x64",
+      "@embedded-postgres/linux-x64",
+      "@embedded-postgres/linux-arm64",
+      "@embedded-postgres/darwin-x64",
+      "@embedded-postgres/darwin-arm64"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "@playwright/test": "^1.49.0",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "embedded-postgres": "18.4.0-beta.17",
+    "eslint": "^9.16.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  }
+}

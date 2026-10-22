@@ -1,0 +1,14 @@
+{
+  "name": "@draftline/adapters",
+  "private": true,
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@draftline/domain": "workspace:*",
+    "zod": "^3.24.0"
+  }
+}
