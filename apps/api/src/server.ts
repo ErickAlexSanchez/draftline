@@ -34,11 +34,8 @@ export function createServer(container: Container): Hono<AppEnv> {
     const started = Date.now();
     let failed = false;
     try {
-      if (isMutation(c.req.method)) {
-        const origin = c.req.header("origin");
-        if (origin !== undefined && origin !== container.env.WEB_ORIGIN) {
-          throw new ForbiddenError("Cross-origin request refused.");
-        }
+      if (isMutation(c.req.method) && !isAllowedOrigin(c.req.header("origin"), container.env.WEB_ORIGIN)) {
+        throw new ForbiddenError("Cross-origin request refused.");
       }
       await next();
       c.header("cache-control", cacheControlHeader(c.req.method, pathOf(c)));
@@ -186,6 +183,26 @@ function pathOf(c: Context<AppEnv>): string {
 
 function isMutation(method: string): boolean {
   return method !== "GET" && method !== "HEAD" && method !== "OPTIONS";
+}
+
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+
+export function isAllowedOrigin(requestOrigin: string | undefined, webOrigin: string): boolean {
+  if (requestOrigin === undefined || requestOrigin === webOrigin) return true;
+  let requestUrl: URL;
+  let allowedUrl: URL;
+  try {
+    requestUrl = new URL(requestOrigin);
+    allowedUrl = new URL(webOrigin);
+  } catch {
+    return false;
+  }
+  if (requestUrl.protocol !== allowedUrl.protocol || requestUrl.port !== allowedUrl.port) return false;
+  return LOOPBACK_HOSTS.has(loopbackHost(requestUrl)) && LOOPBACK_HOSTS.has(loopbackHost(allowedUrl));
+}
+
+function loopbackHost(url: URL): string {
+  return url.hostname.replace(/^\[|\]$/g, "").toLowerCase();
 }
 
 function statusCode(status: number): 400 | 401 | 403 | 404 | 413 | 415 | 500 {

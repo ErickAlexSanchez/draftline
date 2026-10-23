@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import path from "node:path";
 import { tmpdir } from "node:os";
 
-const url = process.env.INTEGRATION_DATABASE_URL ?? "postgresql://draftline:draftline@localhost:5433/draftline_test";
+const url = process.env.INTEGRATION_DATABASE_URL ?? "postgresql://draftline:draftline@127.0.0.1:5433/draftline_test";
 if (/:5432\//.test(url)) throw new Error("Refusing to use host port 5432");
 
 process.env.DATABASE_URL = url;

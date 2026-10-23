@@ -3,9 +3,13 @@
 import { useState, type FormEvent } from "react";
 import { createdJobSchema } from "@draftline/contracts";
 import { ApiError, api } from "../lib/api";
+import { useCopy } from "../lib/preferences";
+
+type EnqueueError = "forbidden" | "invalid" | "failed";
 
 export function NewJobForm({ onCreated }: { onCreated: (id: string) => void }) {
-  const [error, setError] = useState<string | null>(null);
+  const copy = useCopy();
+  const [error, setError] = useState<EnqueueError | null>(null);
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -21,13 +25,9 @@ export function NewJobForm({ onCreated }: { onCreated: (id: string) => void }) {
       );
       onCreated(created.id);
     } catch (caught) {
-      if (caught instanceof ApiError && caught.status === 403) {
-        setError("You do not have permission to enqueue drafts.");
-      } else if (caught instanceof ApiError && caught.status === 400) {
-        setError("Check the title and the brief.");
-      } else {
-        setError("Couldn't enqueue the draft.");
-      }
+      if (caught instanceof ApiError && caught.status === 403) setError("forbidden");
+      else if (caught instanceof ApiError && caught.status === 400) setError("invalid");
+      else setError("failed");
     } finally {
       setPending(false);
     }
@@ -37,18 +37,18 @@ export function NewJobForm({ onCreated }: { onCreated: (id: string) => void }) {
     <form onSubmit={(event) => void onSubmit(event)}>
       {error ? (
         <p role="alert" className="alert">
-          {error}
+          {error === "forbidden" ? copy.enqueueForbidden : error === "invalid" ? copy.enqueueInvalid : copy.enqueueFailed}
         </p>
       ) : null}
-      <label htmlFor="title">Title</label>
+      <label htmlFor="title">{copy.fieldTitle}</label>
       <input id="title" name="title" required maxLength={120} autoComplete="off" />
-      <label htmlFor="brief">Brief</label>
+      <label htmlFor="brief">{copy.fieldBrief}</label>
       <textarea id="brief" name="prompt" required maxLength={4000} rows={8} />
       <p className="hint" id="brief-hint">
-        Up to 4000 characters. The worker writes the draft after the job is queued.
+        {copy.briefHint}
       </p>
       <button type="submit" disabled={pending} aria-describedby="brief-hint">
-        {pending ? "Enqueueing…" : "Enqueue draft"}
+        {pending ? copy.enqueueing : copy.enqueue}
       </button>
     </form>
   );

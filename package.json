@@ -8,15 +8,15 @@
   },
   "scripts": {
     "dev": "tsx scripts/dev.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsx scripts/ensure-next-types.ts && tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "pretest": "tsx scripts/ensure-postgres.ts",
     "test": "jest --colors=false",
     "pretest:e2e": "tsx scripts/ensure-postgres.ts",
     "test:e2e": "playwright test",
-    "migrate": "tsx packages/postgres/src/cli.ts migrate",
-    "seed": "tsx packages/postgres/src/cli.ts seed",
-    "db:reset": "tsx packages/postgres/src/cli.ts reset"
+    "migrate": "tsx scripts/ensure-postgres.ts && tsx packages/postgres/src/cli.ts migrate",
+    "seed": "tsx scripts/ensure-postgres.ts && tsx packages/postgres/src/cli.ts seed",
+    "db:reset": "tsx scripts/ensure-postgres.ts && tsx packages/postgres/src/cli.ts reset"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

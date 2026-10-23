@@ -3,10 +3,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { accountQuery } from "../lib/queries";
+import { useCopy } from "../lib/preferences";
 import { NewJobForm } from "./NewJobForm";
 import { Shell } from "./Shell";
 
 export function NewJobScreen() {
+  const copy = useCopy();
   const account = useQuery(accountQuery());
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -14,8 +16,8 @@ export function NewJobScreen() {
     <Shell>
       {account.data && account.data.role === "editor" ? (
         <>
-          <h1>New job</h1>
-          <p>Enqueueing stores the brief. The worker writes the draft.</p>
+          <h1>{copy.newJob}</h1>
+          <p>{copy.newJobLead}</p>
           <NewJobForm
             onCreated={(id) => {
               void queryClient.invalidateQueries({ queryKey: ["jobs"] });
@@ -25,8 +27,8 @@ export function NewJobScreen() {
         </>
       ) : (
         <>
-          <h1>New job</h1>
-          <p>You can read drafts. Only editors can enqueue them.</p>
+          <h1>{copy.newJob}</h1>
+          <p>{copy.newJobViewer}</p>
         </>
       )}
     </Shell>

@@ -11,6 +11,8 @@ export default tseslint.config(
       "playwright-report/**",
       "test-results/**",
       "var/**",
+      // Next.js writes the triple-slash routes reference in this file.
+      "**/next-env.d.ts",
     ],
   },
   eslint.configs.recommended,

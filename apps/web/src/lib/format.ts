@@ -1,18 +1,20 @@
 import type { JobStatus } from "@draftline/contracts";
+import { messages, type Locale } from "./i18n";
 
-const labels: Record<JobStatus, string> = {
-  queued: "Queued",
-  running: "Running",
-  succeeded: "Succeeded",
-  failed: "Failed",
-};
+const statusKey = {
+  queued: "statusQueued",
+  running: "statusRunning",
+  succeeded: "statusSucceeded",
+  failed: "statusFailed",
+} as const satisfies Record<JobStatus, "statusQueued" | "statusRunning" | "statusSucceeded" | "statusFailed">;
 
-export function statusLabel(status: JobStatus): string {
-  return labels[status];
+export function statusLabel(status: JobStatus, locale: Locale = "en"): string {
+  return messages[locale][statusKey[status]];
 }
 
-export function formatWhen(iso: string): string {
+export function formatWhen(iso: string, locale: Locale = "en"): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(date);
+  const tag = locale === "es" ? "es" : "en-US";
+  return new Intl.DateTimeFormat(tag, { dateStyle: "medium", timeStyle: "short" }).format(date);
 }

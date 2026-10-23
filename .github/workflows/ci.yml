@@ -22,11 +22,11 @@ jobs:
           --health-timeout 5s
           --health-retries 20
     env:
-      DATABASE_URL: postgresql://draftline:draftline@localhost:5433/draftline
-      INTEGRATION_DATABASE_URL: postgresql://draftline:draftline@localhost:5433/draftline_test
+      DATABASE_URL: postgresql://draftline:draftline@127.0.0.1:5433/draftline
+      INTEGRATION_DATABASE_URL: postgresql://draftline:draftline@127.0.0.1:5433/draftline_test
       SESSION_SECRET: ci-session-secret-should-be-32-characters
       API_URL: http://127.0.0.1:3202
-      WEB_ORIGIN: http://localhost:3201
+      WEB_ORIGIN: http://127.0.0.1:3201
       API_PORT: "3202"
       SEED_EDITOR_EMAIL: editor@draftline.example
       SEED_VIEWER_EMAIL: viewer@draftline.example
