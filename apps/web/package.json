@@ -8,6 +8,7 @@
     "build": "next build"
   },
   "dependencies": {
+    "@draftline/api": "workspace:*",
     "@draftline/contracts": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "next": "^15.1.0",

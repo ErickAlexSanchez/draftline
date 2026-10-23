@@ -34,7 +34,7 @@ export function createServer(container: Container): Hono<AppEnv> {
     const started = Date.now();
     let failed = false;
     try {
-      if (isMutation(c.req.method) && !isAllowedOrigin(c.req.header("origin"), container.env.WEB_ORIGIN)) {
+      if (isMutation(c.req.method) && !isAllowedOrigin(c.req.header("origin"), container.env.WEB_ORIGIN, c.req.url)) {
         throw new ForbiddenError("Cross-origin request refused.");
       }
       await next();
@@ -74,14 +74,15 @@ export function createServer(container: Container): Hono<AppEnv> {
     if (!result.token) {
       return c.json({ error: { code: "unauthorized", message: "Email or password is incorrect." } }, 401);
     }
-    setCookie(c, COOKIE, result.token, cookieOptions(container));
+    setCookie(c, COOKIE, result.token, cookieOptions(container, c.req.url));
     return c.json({ ok: true });
   });
 
   app.delete("/sessions", async (c) => {
     const token = getCookie(c, COOKIE);
     await container.logout(token);
-    deleteCookie(c, COOKIE, { path: "/" });
+    const options = cookieOptions(container, c.req.url);
+    deleteCookie(c, COOKIE, { path: options.path, secure: options.secure, sameSite: "Lax" });
     return c.body(null, 204);
   });
 
@@ -187,18 +188,38 @@ function isMutation(method: string): boolean {
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
-export function isAllowedOrigin(requestOrigin: string | undefined, webOrigin: string): boolean {
+export function isAllowedOrigin(requestOrigin: string | undefined, webOrigin: string, requestUrl?: string): boolean {
   if (requestOrigin === undefined || requestOrigin === webOrigin) return true;
-  let requestUrl: URL;
+  if (sameLoopback(requestOrigin, webOrigin)) return true;
+  if (requestUrl !== undefined && sameRequestOrigin(requestOrigin, requestUrl)) return true;
+  return false;
+}
+
+function sameLoopback(requestOrigin: string, webOrigin: string): boolean {
+  let originUrl: URL;
   let allowedUrl: URL;
   try {
-    requestUrl = new URL(requestOrigin);
+    originUrl = new URL(requestOrigin);
     allowedUrl = new URL(webOrigin);
   } catch {
     return false;
   }
-  if (requestUrl.protocol !== allowedUrl.protocol || requestUrl.port !== allowedUrl.port) return false;
-  return LOOPBACK_HOSTS.has(loopbackHost(requestUrl)) && LOOPBACK_HOSTS.has(loopbackHost(allowedUrl));
+  if (originUrl.protocol !== allowedUrl.protocol || originUrl.port !== allowedUrl.port) return false;
+  return LOOPBACK_HOSTS.has(loopbackHost(originUrl)) && LOOPBACK_HOSTS.has(loopbackHost(allowedUrl));
+}
+
+function sameRequestOrigin(requestOrigin: string, requestUrl: string): boolean {
+  let originUrl: URL;
+  let currentUrl: URL;
+  try {
+    originUrl = new URL(requestOrigin);
+    currentUrl = new URL(requestUrl);
+  } catch {
+    return false;
+  }
+  if (originUrl.protocol !== currentUrl.protocol || originUrl.port !== currentUrl.port) return false;
+  if (originUrl.host === currentUrl.host) return true;
+  return LOOPBACK_HOSTS.has(loopbackHost(originUrl)) && LOOPBACK_HOSTS.has(loopbackHost(currentUrl));
 }
 
 function loopbackHost(url: URL): string {
@@ -239,7 +260,7 @@ async function readJson(c: Context<AppEnv>): Promise<unknown> {
   }
 }
 
-function cookieOptions(container: Container): {
+function cookieOptions(container: Container, requestUrl: string): {
   httpOnly: true;
   sameSite: "Lax";
   path: "/";
@@ -250,7 +271,7 @@ function cookieOptions(container: Container): {
     httpOnly: true,
     sameSite: "Lax",
     path: "/",
-    secure: container.env.WEB_ORIGIN.startsWith("https://"),
+    secure: container.env.WEB_ORIGIN.startsWith("https://") || requestUrl.startsWith("https://"),
     maxAge: Math.floor(container.env.SESSION_TTL_MS / 1000),
   };
 }

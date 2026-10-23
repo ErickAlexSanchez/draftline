@@ -3,7 +3,9 @@ const mapper = {
   "^@draftline/contracts$": "<rootDir>/packages/contracts/src/index.ts",
   "^@draftline/adapters$": "<rootDir>/packages/adapters/src/index.ts",
   "^@draftline/postgres$": "<rootDir>/packages/postgres/src/index.ts",
+  "^@draftline/composition/memory$": "<rootDir>/packages/composition/src/memory.ts",
   "^@draftline/composition$": "<rootDir>/packages/composition/src/compose.ts",
+  "^@draftline/api$": "<rootDir>/apps/api/src/index.ts",
 };
 
 const transform = {

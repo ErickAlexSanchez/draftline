@@ -16,6 +16,8 @@ Postgres stores tenants, users, sessions, drafts, and jobs. A user's role is a c
 
 This portfolio version has one tenant. `FakeModelGateway` and `DiskObjectStorage` implement the ports. The composition root in `packages/composition` is the only place that chooses those adapters.
 
+The hosted Next.js app has no worker and no `DATABASE_URL`. It binds the same ports to an in-memory catalog. `POST /jobs` still returns a queued id and does not receive a `ModelGateway`. A later same-origin read claims that job and completes it with `FakeModelGateway`. When `DATABASE_URL` is set, Postgres stays the catalog, and the credit debit still commits in the transaction that marks the job `succeeded`.
+
 ## Consequences
 
 - The enqueue response stays a database write. Generation can be slow, retried, or refused without holding the request open.

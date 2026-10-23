@@ -20,7 +20,9 @@
       "@draftline/contracts": ["packages/contracts/src/index.ts"],
       "@draftline/adapters": ["packages/adapters/src/index.ts"],
       "@draftline/postgres": ["packages/postgres/src/index.ts"],
-      "@draftline/composition": ["packages/composition/src/compose.ts"]
+      "@draftline/composition": ["packages/composition/src/compose.ts"],
+      "@draftline/composition/memory": ["packages/composition/src/memory.ts"],
+      "@draftline/api": ["apps/api/src/index.ts"]
     }
   },
   "include": [
