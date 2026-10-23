@@ -6,6 +6,12 @@ Draftline is a writing workspace. An editor enqueues a brief. The API stores a j
 
 The technical decision is recorded in [docs/adr/0002-decision.md](docs/adr/0002-decision.md). The portfolio context is in [docs/adr/0001-portfolio-version.md](docs/adr/0001-portfolio-version.md).
 
+## Live
+
+The public demo is the URL Vercel assigns when this repository is imported and deployed. This repository does not record a production hostname. Import the GitHub repository as one Vercel project. The root `vercel.json` uses Vercel Services, which are in beta, because the repository contains more than one app. That file publishes the Next.js app in `apps/web`.
+
+Postgres, the API, and the worker stay on this machine. Docker Compose runs Postgres. The API is a separate server, and the worker is a claim loop. Neither one is a route inside the Next.js app, so they are not part of the Vercel deploy. A hosted page can load without them. Enqueueing a job still needs the local API, the worker, and Postgres.
+
 ## Decision
 
 `POST /jobs` returns an id and does not call the model. The handler persists `queued` and does not use `ModelGateway`. A worker claims the row, checks the tenant credit balance, and only then calls the model. A balance below the cost marks the job `failed` with `insufficient_credits`, without a model call and without a file. A successful generation debits credits in the same Postgres transaction that marks the job `succeeded`.
@@ -60,7 +66,9 @@ tests/e2e                   Editor path from Queued to Succeeded.
 
 Ports live in `packages/domain/src/ports.ts`: `ModelGateway`, `ObjectStorage`, `JobQueue`, `Clock`.
 
-## Run
+## Local
+
+These addresses are local to this machine. They are not the public demo.
 
 Requirements: Node.js 22 and pnpm 10.18 (`corepack pnpm`). Docker runs the Postgres in `docker-compose.yml`. If nothing is listening on port 5433, `pnpm migrate`, `pnpm seed`, `pnpm db:reset`, `pnpm dev`, `pnpm test`, and `pnpm test:e2e` start a local Postgres cluster on that port and leave it running.
 

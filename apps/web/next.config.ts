@@ -33,8 +33,16 @@ function loadRootEnv(): void {
 
 loadRootEnv();
 
-const apiUrl = process.env.API_URL;
-if (!apiUrl || (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://"))) {
+function readApiUrl(): string | undefined {
+  const value = process.env.API_URL;
+  if (typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://"))) {
+    return value;
+  }
+  return undefined;
+}
+
+const apiUrl = readApiUrl();
+if (process.env.VERCEL !== "1" && apiUrl === undefined) {
   throw new Error("Invalid environment: API_URL");
 }
 
@@ -42,6 +50,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   async rewrites() {
+    if (apiUrl === undefined) {
+      return [];
+    }
     return [{ source: "/api/:path*", destination: `${apiUrl}/:path*` }];
   },
 };
