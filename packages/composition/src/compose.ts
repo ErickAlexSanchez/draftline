@@ -5,16 +5,13 @@ import {
   FakeModelGateway,
   findRepoRoot,
   loadRootEnv,
-  log,
   readRuntimeEnv,
   scryptHasher,
   systemClock,
   createTokenIssuer,
-  type RuntimeEnv,
 } from "@draftline/adapters";
 import {
   authenticate,
-  completeClaimedJob,
   enqueueJob,
   enqueueJobFromDraft,
   getDraft,
@@ -23,10 +20,6 @@ import {
   listJobs,
   loginUser,
   saveDraft,
-  type Clock,
-  type ModelGateway,
-  type ObjectStorage,
-  type Principal,
 } from "@draftline/domain";
 import {
   createPool,
@@ -38,33 +31,10 @@ import {
   PgTenants,
   PgUsers,
 } from "@draftline/postgres";
+import { processNextQueued } from "./process-next";
+import type { ComposeOverrides, Container } from "./types";
 
-export type ComposeOverrides = {
-  model?: ModelGateway;
-  storage?: ObjectStorage;
-  clock?: Clock;
-};
-
-export type Container = {
-  env: RuntimeEnv;
-  ping(): Promise<void>;
-  close(): Promise<void>;
-  login(input: { email: string; password: string }): Promise<{ token: string } | { token: null }>;
-  logout(token: string | undefined): Promise<void>;
-  authenticate(token: string | undefined): Promise<Principal | null>;
-  account(actor: Principal): Promise<{ email: string; role: Principal["role"]; tenantName: string; credits: number }>;
-  listJobs(actor: Principal): ReturnType<typeof listJobs>;
-  getJob(actor: Principal, id: string): Promise<{ job: Awaited<ReturnType<typeof getJob>>; outputText: string | null }>;
-  enqueue(
-    actor: Principal,
-    input: { title: string; prompt: string; draftId?: string | null },
-  ): ReturnType<typeof enqueueJob>;
-  listDrafts(actor: Principal): ReturnType<typeof listDrafts>;
-  getDraft(actor: Principal, id: string): ReturnType<typeof getDraft>;
-  saveDraft(actor: Principal, input: { title: string; body: string }): ReturnType<typeof saveDraft>;
-  enqueueFromDraft(actor: Principal, draftId: string): ReturnType<typeof enqueueJobFromDraft>;
-  processNextJob(): Promise<"idle" | "processed">;
-};
+export type { ComposeOverrides, Container } from "./types";
 
 export async function compose(overrides: ComposeOverrides = {}): Promise<Container> {
   const root = loadRootEnv();
@@ -134,24 +104,15 @@ export async function compose(overrides: ComposeOverrides = {}): Promise<Contain
     enqueueFromDraft(actor, draftId) {
       return enqueueJobFromDraft({ jobs, drafts, clock, ids, creditCost: env.MODEL_CREDIT_COST }, actor, draftId);
     },
-    async processNextJob() {
-      const now = clock.now();
-      const visibleBefore = new Date(now.getTime() - env.JOB_VISIBILITY_DELAY_MS);
-      const claimed = await jobs.claimNext(visibleBefore, now);
-      if (!claimed) return "idle";
-      try {
-        const outcome = await completeClaimedJob({ jobs, budget, model, storage, clock }, claimed);
-        log("info", { msg: "job_finished", jobId: claimed.id, outcome });
-        return "processed";
-      } catch (error) {
-        log("error", { msg: "job_failed", jobId: claimed.id, err: error });
-        try {
-          await jobs.markFailed(claimed.id, "worker_error", clock.now());
-        } catch (markError) {
-          log("error", { msg: "job_mark_failed", jobId: claimed.id, err: markError });
-        }
-        return "processed";
-      }
+    processNextJob() {
+      return processNextQueued({
+        jobs,
+        budget,
+        model,
+        storage,
+        clock,
+        visibilityDelayMs: env.JOB_VISIBILITY_DELAY_MS,
+      });
     },
   };
 }

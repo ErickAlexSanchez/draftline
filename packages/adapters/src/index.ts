@@ -1,8 +1,12 @@
 export { systemClock } from "./clock";
 export { DiskObjectStorage } from "./disk-storage";
-export { readRuntimeEnv, readSeedEnv } from "./env";
-export type { RuntimeEnv, SeedEnv } from "./env";
+export { hasDatabaseUrl, readDemoEnv, readRuntimeEnv, readSeedEnv } from "./env";
+export type { DemoEnv, RuntimeEnv, SeedEnv } from "./env";
 export { FakeModelGateway, renderDraft } from "./fake-model";
+export { DEMO_CREDITS, DEMO_EDITOR_ID, DEMO_TENANT_ID, DEMO_VIEWER_ID, packSnapshot, unpackSnapshot } from "./memory-snapshot";
+export type { MemorySnapshot } from "./memory-snapshot";
+export { MemoryWorkspace } from "./memory-workspace";
+export type { DemoSeed } from "./memory-workspace";
 export { findRepoRoot, loadRootEnv } from "./load-env";
 export { log } from "./logger";
 export { scryptHasher } from "./password";

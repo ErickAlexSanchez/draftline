@@ -5,7 +5,8 @@
   "main": "./src/compose.ts",
   "types": "./src/compose.ts",
   "exports": {
-    ".": "./src/compose.ts"
+    ".": "./src/compose.ts",
+    "./memory": "./src/memory.ts"
   },
   "dependencies": {
     "@draftline/adapters": "workspace:*",

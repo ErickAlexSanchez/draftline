@@ -19,4 +19,15 @@ describe("isAllowedOrigin", () => {
     expect(isAllowedOrigin("http://127.0.0.1:3201", "http://draftline.example:3201")).toBe(false);
     expect(isAllowedOrigin("not a url", webOrigin)).toBe(false);
   });
+
+  it("accepts the host that received the request", () => {
+    const hosted = "https://web-xi-nine-93.vercel.app";
+    expect(isAllowedOrigin(hosted, webOrigin, `${hosted}/api/sessions`)).toBe(true);
+    expect(isAllowedOrigin("https://preview.example", webOrigin, "https://preview.example/api/sessions")).toBe(true);
+    expect(isAllowedOrigin("https://evil.example", webOrigin, `${hosted}/api/sessions`)).toBe(false);
+    expect(isAllowedOrigin("http://preview.example", webOrigin, "https://preview.example/api/sessions")).toBe(false);
+    expect(isAllowedOrigin("http://127.0.0.1:3211", webOrigin, "http://localhost:3211/api/sessions")).toBe(true);
+    expect(isAllowedOrigin("http://[::1]:3211", webOrigin, "http://127.0.0.1:3211/api/sessions")).toBe(true);
+    expect(isAllowedOrigin("http://127.0.0.1:3202", webOrigin, "http://localhost:3211/api/sessions")).toBe(false);
+  });
 });

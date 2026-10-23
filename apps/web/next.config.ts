@@ -46,14 +46,33 @@ if (process.env.VERCEL !== "1" && apiUrl === undefined) {
   throw new Error("Invalid environment: API_URL");
 }
 
+function repoRoot(): string {
+  let dir = process.cwd();
+  for (let depth = 0; depth < 6; depth += 1) {
+    if (existsSync(path.join(dir, "pnpm-workspace.yaml"))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return process.cwd();
+    dir = parent;
+  }
+  return process.cwd();
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  outputFileTracingRoot: repoRoot(),
+  transpilePackages: [
+    "@draftline/api",
+    "@draftline/composition",
+    "@draftline/adapters",
+    "@draftline/domain",
+    "@draftline/contracts",
+  ],
+  serverExternalPackages: ["pg"],
   async rewrites() {
-    if (apiUrl === undefined) {
-      return [];
-    }
-    return [{ source: "/api/:path*", destination: `${apiUrl}/:path*` }];
+    if (apiUrl === undefined) return [];
+    // beforeFiles runs before App Router handlers, so local /api still reaches the Hono server.
+    return { beforeFiles: [{ source: "/api/:path*", destination: `${apiUrl}/:path*` }] };
   },
 };
 

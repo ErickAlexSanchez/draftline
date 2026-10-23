@@ -90,6 +90,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@draftline/api':
+        specifier: workspace:*
+        version: link:../api
       '@draftline/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts

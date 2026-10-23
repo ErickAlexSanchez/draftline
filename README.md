@@ -2,19 +2,23 @@ This is a portfolio version of a production system I built for a company whose c
 
 # Draftline
 
-Draftline is a writing workspace. An editor enqueues a brief. The API stores a job and returns its id. A worker calls the model, writes the draft to object storage, and spends credits from that tenant. A viewer can read the queue and the saved drafts, and receives 403 when they enqueue a job or save a draft.
+Draftline is a writing workspace. An editor enqueues a brief. The API stores a job and returns its id. A worker calls the model, writes the draft to object storage, and spends credits from that tenant. The hosted page has no worker process, so a later read of the job does that work with the fake model. A viewer can read the queue and the saved drafts, and receives 403 when they enqueue a job or save a draft.
 
 The technical decision is recorded in [docs/adr/0002-decision.md](docs/adr/0002-decision.md). The portfolio context is in [docs/adr/0001-portfolio-version.md](docs/adr/0001-portfolio-version.md).
 
 ## Live
 
-The public demo is the URL Vercel assigns when this repository is imported and deployed. This repository does not record a production hostname. Import the GitHub repository as one Vercel project. The root `vercel.json` uses Vercel Services, which are in beta, because the repository contains more than one app. That file publishes the Next.js app in `apps/web`.
+The hosted page is https://web-xi-nine-93.vercel.app. It loads the synthetic workspace without Postgres.
 
-Postgres, the API, and the worker stay on this machine. Docker Compose runs Postgres. The API is a separate server, and the worker is a claim loop. Neither one is a route inside the Next.js app, so they are not part of the Vercel deploy. A hosted page can load without them. Enqueueing a job still needs the local API, the worker, and Postgres.
+Import this repository as one Vercel project. The root `vercel.json` publishes the Next.js app in `apps/web`. Install stays pnpm from the repository root. The app serves `/api` on the deployment's own host. The page does not need environment variables.
+
+When `DATABASE_URL` is unset, those routes use an in-memory catalog. The catalog starts with one tenant, 20 credits, and the demo accounts listed under Local. `POST /jobs` stores `queued` and does not call a model. That host has no long-running worker, so a later same-origin read of the queue claims the job and finishes it with the fake model after the visibility delay. A successful finish debits one credit. A balance below the cost marks the job `failed` with `insufficient_credits` and does not call the model.
+
+When `DATABASE_URL` is set, the API and the worker keep Postgres. The credit debit still commits in the same transaction as success. A write is accepted from the deployment's own host. Loopback names on the same scheme and port stay equivalent. Local addresses stay in the Local section.
 
 ## Decision
 
-`POST /jobs` returns an id and does not call the model. The handler persists `queued` and does not use `ModelGateway`. A worker claims the row, checks the tenant credit balance, and only then calls the model. A balance below the cost marks the job `failed` with `insufficient_credits`, without a model call and without a file. A successful generation debits credits in the same Postgres transaction that marks the job `succeeded`.
+`POST /jobs` returns an id and does not call the model. The handler persists `queued` and does not use `ModelGateway`. A worker claims the row, checks the tenant credit balance, and only then calls the model. Where `DATABASE_URL` is unset, a later same-origin read claims the row instead. That read still does not run inside `POST /jobs`. A balance below the cost marks the job `failed` with `insufficient_credits`, without a model call and without a file. A successful generation debits credits in the same Postgres transaction that marks the job `succeeded`.
 
 TanStack Query caches lists and saved drafts (`staleTime` 60 seconds). It does not cache generation: job detail uses `staleTime: 0` and refetches until `succeeded` or `failed`. The HTTP cache matches that split: `private, max-age=60` for `GET /jobs`, `GET /drafts`, and `GET /drafts/:id`; `no-store` for `GET /jobs/:id`.
 
@@ -48,15 +52,17 @@ flowchart LR
   adapters --> disk
 ```
 
+The diagram is the Postgres path used when `DATABASE_URL` is set, including local development. The hosted page uses the same ports on an in-memory catalog.
+
 ```
 .github/workflows/ci.yml    Typecheck, lint, unit and integration tests, then Playwright.
-apps/web                    Next.js UI. TanStack Query owns server state.
+apps/web                    Next.js UI. TanStack Query owns server state. Serves the demo API when DATABASE_URL is unset.
 apps/api                    HTTP adapter. Auth, cache headers, error mapping.
 apps/worker                 Claim loop. On SIGTERM or SIGINT it finishes a started job, then closes the pool.
 packages/domain             identity, tenancy, jobs, budget, files. No framework and no driver.
-packages/composition        The only composition root. Chooses the fake model and disk storage.
+packages/composition        The only composition root. Postgres when DATABASE_URL is set; the in-memory catalog when it is not.
 packages/postgres           Parameterized SQL, versioned migrations, seed, reset.
-packages/adapters           FakeModelGateway, DiskObjectStorage, clock, password hasher, logger.
+packages/adapters           FakeModelGateway, DiskObjectStorage, the in-memory catalog, clock, password hasher, logger.
 packages/contracts          Request schemas and the cache-header policy.
 docs/adr                    0001 portfolio context. 0002 the queue decision.
 scripts                     Dev process, e2e host, local Postgres, and the Next types stand-in.
